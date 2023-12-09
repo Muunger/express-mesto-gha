@@ -3,7 +3,6 @@ const {
   HTTP_STATUS_OK,
   HTTP_STATUS_CREATED,
   HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
 } = require("http2").constants;
 
@@ -14,9 +13,6 @@ const getUsers = async (req, res) => {
     const users = await User.find({});
     return res.status(HTTP_STATUS_OK).send(users);
   } catch (error) {
-    if (res.status(HTTP_STATUS_NOT_FOUND)) {
-      return res.send({ message: "Пользователи не найдены" });
-    }
     return res
       .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
       .send({ error: error.message });
@@ -78,6 +74,10 @@ const updateUserInfo = async (req, res) => {
       case "CaseError":
         return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: "Переданы некорректные данные при обновлении профиля",
+        });
+      case "ValidationError":
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: "Допустимое количество символов от 2 до 30",
         });
       case "NotFoundError":
         return res.status(error.status).send({ message: error.message });
