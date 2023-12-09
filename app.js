@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const routerUser = require('./routes/user')
 const routerCard = require('./routes/card')
 const bodyParser = require('body-parser')
-
+const { HTTP_STATUS_NOT_FOUND } = require('http2').constants
 
 const { PORT = 3000 } = process.env
 
@@ -23,6 +23,10 @@ mongoose.connect("mongodb://127.0.0.1:27017/mestodb")
 
 app.use('/', routerUser)
 app.use('/', routerCard)
+app.use('/', (req, res) => {
+  return res.status(HTTP_STATUS_NOT_FOUND).send({ message: "Страница не найдена"})
+
+})
 
 app.listen(PORT, () => {
   console.log('Сервер запущен');
