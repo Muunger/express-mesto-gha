@@ -6,6 +6,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
 } = require("http2").constants;
+const { NotFoundError } = require("../utils/NotFoundError");
 
 const getCard = async (req, res) => {
   try {
@@ -58,7 +59,7 @@ const likeCard = async (req, res) => {
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
       { new: true }
-    );
+    ).orFail(() => new NotFoundError("Передан несуществующий id карточки"));
     return res.status(HTTP_STATUS_OK).send(like);
   } catch (error) {
     switch (error.name) {
@@ -66,10 +67,8 @@ const likeCard = async (req, res) => {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: "Переданы некорректные данные при постановки/снятия лайка",
         });
-      case "Not Found":
-        return res
-          .status(HTTP_STATUS_NOT_FOUND)
-          .send({ message: "Передан несуществующий id карточки" });
+      case "NotFoundError":
+        return res.status(error.status).send({ message: error.message });
       default:
         return res
           .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
@@ -84,18 +83,16 @@ const dislikeCard = async (req, res) => {
       req.params.cardId,
       { $pull: { likes: req.user._id } },
       { new: true }
-    );
-    return resstatus(HTTP_STATUS_OK).send(dislike);
+    ).orFail(() => new NotFoundError("Передан несуществующий id карточки"));
+    return res.status(HTTP_STATUS_OK).send(dislike);
   } catch (error) {
     switch (error.name) {
       case "CastError":
         return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: "Переданы некорректные данные при постановки/снятия лайка",
         });
-      case "Not Found":
-        return res
-          .status(HTTP_STATUS_NOT_FOUND)
-          .send({ message: "Передан несуществующий id карточки" });
+      case "NotFoundError":
+        return res.status(error.status).send({ message: error.message });
       default:
         return res
           .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)

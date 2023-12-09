@@ -7,6 +7,8 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
 } = require("http2").constants;
 
+const { NotFoundError } = require("../utils/NotFoundError");
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({});
@@ -24,7 +26,9 @@ const getUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).orFail(
+      () => new NotFoundError("Пользователь по указанному id не найден")
+    );
     return res.status(HTTP_STATUS_OK).send(user);
   } catch (error) {
     switch (error.name) {
@@ -32,10 +36,8 @@ const getUserById = async (req, res) => {
         return res
           .status(HTTP_STATUS_BAD_REQUEST)
           .send({ message: "Переданы некорректные данные" });
-      case "Not Found":
-        return res
-          .status(HTTP_STATUS_NOT_FOUND)
-          .send({ message: "Пользователь по указанному id не найден" });
+      case "NotFoundError":
+        return res.status(error.status).send({ message: error.message });
       default:
         return res
           .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
@@ -67,20 +69,23 @@ const updateUserInfo = async (req, res) => {
       req.user._id,
       { name, about },
       { new: true, runValidators: true }
+    ).orFail(
+      () => new NotFoundError("Пользователь по указанному id не найден")
     );
     return res.status(HTTP_STATUS_OK).send(userInfo);
   } catch (error) {
-    if (res.status(HTTP_STATUS_BAD_REQUEST)) {
-      return res.send({
-        message: "Переданы некорректные данные при обновлении профиля",
-      });
+    switch (error.name) {
+      case "CaseError":
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: "Переданы некорректные данные при обновлении профиля",
+        });
+      case "NotFoundError":
+        return res.status(error.status).send({ message: error.message });
+      default:
+        return res
+          .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+          .send({ error: error.message });
     }
-    if (res.status(HTTP_STATUS_NOT_FOUND)) {
-      return res.send({ message: "Пользователь с указанным id не найден" });
-    }
-    return res
-      .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: error.message });
   }
 };
 
@@ -91,20 +96,23 @@ const updateUserAvatar = async (req, res) => {
       req.user._id,
       { avatar },
       { new: true, runValidators: true }
+    ).orFail(
+      () => new NotFoundError("Пользователь по указанному id не найден")
     );
     return res.status(HTTP_STATUS_OK).send(userAvatar);
   } catch (error) {
-    if (res.status(HTTP_STATUS_BAD_REQUEST)) {
-      return res.send({
-        message: "Переданы некорректные данные при обновлении профиля",
-      });
+    switch (error.name) {
+      case "CaseError":
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: "Переданы некорректные данные при обновлении профиля",
+        });
+      case "NotFoundError":
+        return res.status(error.status).send({ message: error.message });
+      default:
+        return res
+          .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+          .send({ error: error.message });
     }
-    if (res.status(HTTP_STATUS_NOT_FOUND)) {
-      return res.send({ message: "Пользователь с указанным id не найден" });
-    }
-    return res
-      .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: error.message });
   }
 };
 
