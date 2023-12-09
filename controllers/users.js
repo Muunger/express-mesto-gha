@@ -27,12 +27,20 @@ const getUserById = async (req, res) => {
     const user = await User.findById(userId);
     return res.status(HTTP_STATUS_OK).send(user);
   } catch (error) {
-    if (res.status(HTTP_STATUS_NOT_FOUND)) {
-      return res.send({ message: "Пользователь по указанному id не найден" });
+    switch (error.name) {
+      case "CastError":
+        return res
+          .status(HTTP_STATUS_BAD_REQUEST)
+          .send({ message: "Переданы некорректные данные" });
+      case "Not Found":
+        return res
+          .status(HTTP_STATUS_NOT_FOUND)
+          .send({ message: "Пользователь по указанному id не найден" });
+      default:
+        return res
+          .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+          .send({ error: error.message });
     }
-    return res
-      .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: error.message });
   }
 };
 

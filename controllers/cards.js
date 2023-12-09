@@ -61,17 +61,20 @@ const likeCard = async (req, res) => {
     );
     return res.status(HTTP_STATUS_OK).send(like);
   } catch (error) {
-    if (res.status(HTTP_STATUS_BAD_REQUEST)) {
-      return res.send({
-        message: "Переданы некорректные данные при постановки/снятия лайка",
-      });
+    switch (error.name) {
+      case "CastError":
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: "Переданы некорректные данные при постановки/снятия лайка",
+        });
+      case "Not Found":
+        return res
+          .status(HTTP_STATUS_NOT_FOUND)
+          .send({ message: "Передан несуществующий id карточки" });
+      default:
+        return res
+          .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+          .send({ error: error.message });
     }
-    if (res.status(HTTP_STATUS_NOT_FOUND)) {
-      return res.send({ message: "Передан несуществующий id карточки" });
-    }
-    return res
-      .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: error.message });
   }
 };
 
@@ -84,17 +87,20 @@ const dislikeCard = async (req, res) => {
     );
     return resstatus(HTTP_STATUS_OK).send(dislike);
   } catch (error) {
-    if (res.status(HTTP_STATUS_BAD_REQUEST)) {
-      return res.send({
-        message: "Переданы некорректные данные при постановки/снятия лайка",
-      });
+    switch (error.name) {
+      case "CastError":
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
+          message: "Переданы некорректные данные при постановки/снятия лайка",
+        });
+      case "Not Found":
+        return res
+          .status(HTTP_STATUS_NOT_FOUND)
+          .send({ message: "Передан несуществующий id карточки" });
+      default:
+        return res
+          .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
+          .send({ error: error.message });
     }
-    if (res.status(HTTP_STATUS_NOT_FOUND)) {
-      return res.send({ message: "Передан несуществующий id карточки" });
-    }
-    return res
-      .status(HTTP_STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: error.message });
   }
 };
 
