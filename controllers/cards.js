@@ -1,15 +1,15 @@
-const Card = require("../models/card");
 const {
   HTTP_STATUS_OK,
   HTTP_STATUS_CREATED,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
-} = require("http2").constants;
-const { NotFoundError } = require("../utils/NotFoundError");
+} = require('http2').constants;
+const Card = require('../models/card');
+const { NotFoundError } = require('../utils/NotFoundError');
 
 const getCard = async (req, res) => {
   try {
-    const cards = await Card.find({}).populate(["owner"]);
+    const cards = await Card.find({}).populate(['owner']);
     return res.status(HTTP_STATUS_OK).send(cards);
   } catch (error) {
     return res
@@ -26,7 +26,7 @@ const createCard = async (req, res) => {
   } catch (error) {
     if (res.status(HTTP_STATUS_BAD_REQUEST)) {
       return res.send({
-        message: "Переданы некорректные данные при создании карточки",
+        message: 'Переданы некорректные данные при создании карточки',
       });
     }
     return res
@@ -38,16 +38,16 @@ const createCard = async (req, res) => {
 const deleteCard = async (req, res) => {
   try {
     const delCard = await Card.findByIdAndDelete(req.params.cardId).orFail(
-      () => new NotFoundError("Передан несуществующий id карточки")
+      () => new NotFoundError('Передан несуществующий id карточки'),
     );
     return res.status(HTTP_STATUS_OK).send(delCard);
   } catch (error) {
     switch (error.name) {
-      case "CastError":
+      case 'CastError':
         return res
           .status(HTTP_STATUS_BAD_REQUEST)
-          .send({ message: "Карточка с указанным id не найдена" });
-      case "NotFoundError":
+          .send({ message: 'Карточка с указанным id не найдена' });
+      case 'NotFoundError':
         return res.status(error.status).send({ message: error.message });
       default:
         return res
@@ -62,16 +62,16 @@ const likeCard = async (req, res) => {
     const like = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
-      { new: true }
-    ).orFail(() => new NotFoundError("Передан несуществующий id карточки"));
+      { new: true },
+    ).orFail(() => new NotFoundError('Передан несуществующий id карточки'));
     return res.status(HTTP_STATUS_OK).send(like);
   } catch (error) {
     switch (error.name) {
-      case "CastError":
+      case 'CastError':
         return res.status(HTTP_STATUS_BAD_REQUEST).send({
-          message: "Переданы некорректные данные при постановки/снятия лайка",
+          message: 'Переданы некорректные данные при постановки/снятия лайка',
         });
-      case "NotFoundError":
+      case 'NotFoundError':
         return res.status(error.status).send({ message: error.message });
       default:
         return res
@@ -86,16 +86,16 @@ const dislikeCard = async (req, res) => {
     const dislike = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
-      { new: true }
-    ).orFail(() => new NotFoundError("Передан несуществующий id карточки"));
+      { new: true },
+    ).orFail(() => new NotFoundError('Передан несуществующий id карточки'));
     return res.status(HTTP_STATUS_OK).send(dislike);
   } catch (error) {
     switch (error.name) {
-      case "CastError":
+      case 'CastError':
         return res.status(HTTP_STATUS_BAD_REQUEST).send({
-          message: "Переданы некорректные данные при постановки/снятия лайка",
+          message: 'Переданы некорректные данные при постановки/снятия лайка',
         });
-      case "NotFoundError":
+      case 'NotFoundError':
         return res.status(error.status).send({ message: error.message });
       default:
         return res
